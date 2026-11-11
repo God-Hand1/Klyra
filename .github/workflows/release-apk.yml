@@ -1,0 +1,121 @@
+name: Manual Release APK
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: "Release tag (e.g. v1.0.0)"
+        required: true
+        default: "v1.0.0"
+      release_title:
+        description: "Release title"
+        required: false
+        default: "Klyra MDM Release"
+      release_notes:
+        description: "Release notes / changelog"
+        required: false
+        default: "Production release build of Klyra MDM client."
+      draft:
+        description: "Create draft release"
+        type: boolean
+        default: false
+      prerelease:
+        description: "Mark as pre-release"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build & Publish Release APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: "17"
+          distribution: "temurin"
+          cache: "gradle"
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Ensure Gradle Wrapper jar is present
+        run: |
+          if [ ! -f gradle/wrapper/gradle-wrapper.jar ]; then
+            echo "gradle-wrapper.jar not found, generating wrapper for Gradle 8.5..."
+            gradle wrapper --gradle-version 8.5
+          fi
+
+      - name: Setup Keystore (if provided as secrets)
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          if [ -n "$KEYSTORE_BASE64" ]; then
+            echo "Decoding release keystore..."
+            mkdir -p "$HOME/keystore"
+            echo "$KEYSTORE_BASE64" | base64 -d > "$HOME/keystore/release.jks"
+            echo "KEYSTORE_PATH=$HOME/keystore/release.jks" >> $GITHUB_ENV
+            echo "KEYSTORE_PASSWORD=$KEYSTORE_PASSWORD" >> $GITHUB_ENV
+            echo "KEY_ALIAS=$KEY_ALIAS" >> $GITHUB_ENV
+            echo "KEY_PASSWORD=$KEY_PASSWORD" >> $GITHUB_ENV
+          else
+            echo "No KEYSTORE_BASE64 secret provided; building unsigned release APK."
+          fi
+
+      - name: Build Release APK
+        run: ./gradlew assembleRelease --no-daemon --stacktrace
+
+      - name: Locate and prepare APK asset
+        id: apk
+        run: |
+          APK_FILE=$(find app/build/outputs/apk/release -name "*.apk" | head -n 1)
+          if [ -z "$APK_FILE" ]; then
+            echo "::error::No release APK found!"
+            exit 1
+          fi
+          echo "Found release APK: $APK_FILE"
+          cp "$APK_FILE" "klyra-mdm-${{ inputs.tag_name }}.apk"
+          echo "apk_path=klyra-mdm-${{ inputs.tag_name }}.apk" >> $GITHUB_OUTPUT
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: klyra-release-${{ inputs.tag_name }}
+          path: ${{ steps.apk.outputs.apk_path }}
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Create GitHub Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ inputs.tag_name }}
+          TITLE: ${{ inputs.release_title }}
+          NOTES: ${{ inputs.release_notes }}
+          IS_DRAFT: ${{ inputs.draft }}
+          IS_PRERELEASE: ${{ inputs.prerelease }}
+          APK_PATH: ${{ steps.apk.outputs.apk_path }}
+        run: |
+          FLAGS=()
+          if [ "$IS_DRAFT" = "true" ]; then FLAGS+=("--draft"); fi
+          if [ "$IS_PRERELEASE" = "true" ]; then FLAGS+=("--prerelease"); fi
+          
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Release $TAG exists. Uploading asset..."
+            gh release upload "$TAG" "$APK_PATH" --clobber
+          else
+            echo "Creating release $TAG..."
+            gh release create "$TAG" "$APK_PATH" \
+              --title "$TITLE" \
+              --notes "$NOTES" \
+              "${FLAGS[@]}"
+          fi
