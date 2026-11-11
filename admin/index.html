@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Klyra MDM — Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <div id="app"></div>
+
+  <div id="toast-container"></div>
+
+  <!-- Device Detail Modal -->
+  <div id="device-modal" class="modal-overlay hidden">
+    <div class="modal-panel">
+      <div class="modal-header">
+        <div class="modal-title-area">
+          <h2 id="modal-device-name"></h2>
+          <span id="modal-device-status" class="status-badge"></span>
+        </div>
+        <button class="modal-close" onclick="UI.closeDeviceModal()">&times;</button>
+      </div>
+      <div id="modal-device-content" class="modal-body"></div>
+    </div>
+  </div>
+
+  <!-- Device Selector Modal (for app install) -->
+  <div id="device-selector-modal" class="modal-overlay hidden">
+    <div class="modal-panel modal-small">
+      <div class="modal-header">
+        <h2>Select Device</h2>
+        <button class="modal-close" onclick="UI.closeDeviceSelector()">&times;</button>
+      </div>
+      <div id="device-selector-content" class="modal-body"></div>
+    </div>
+  </div>
+
+  <script src="js/utils.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/ws.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
