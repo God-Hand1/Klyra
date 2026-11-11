@@ -19,26 +19,33 @@ class InstallResultReceiver : BroadcastReceiver() {
         val packageName = intent.getStringExtra(EXTRA_PACKAGE_NAME) ?: ""
         val appName = intent.getStringExtra(EXTRA_APP_NAME) ?: packageName
         val commandId = intent.getStringExtra(EXTRA_COMMAND_ID) ?: ""
+        val isUninstall = intent.getBooleanExtra(EXTRA_IS_UNINSTALL, false)
 
         val config = ServerConfig(context)
         val reporter = DeviceStateReporter(context)
 
         when (status) {
             PackageInstaller.STATUS_PENDING_USER_ACTION -> {
-                Log.d(TAG, "Install pending user action (should not happen for Device Owner)")
+                Log.d(TAG, "Install/Uninstall pending user action (should not happen for Device Owner)")
             }
             PackageInstaller.STATUS_SUCCESS -> {
-                Log.i(TAG, "Package $packageName installed successfully")
+                val actionVerb = if (isUninstall) "uninstalled" else "installed"
+                Log.i(TAG, "Package $packageName $actionVerb successfully")
                 if (packageName.isNotEmpty()) {
-                    config.addInstalledPackage(packageName)
-                    config.setInstalledAppName(packageName, appName)
+                    if (isUninstall) {
+                        config.removeInstalledPackage(packageName)
+                        config.removeInstalledAppName(packageName)
+                    } else {
+                        config.addInstalledPackage(packageName)
+                        config.setInstalledAppName(packageName, appName)
+                    }
                 }
 
                 if (commandId.isNotEmpty()) {
                     val resultJson = reporter.buildCommandResult(
                         commandId,
                         true,
-                        "Successfully installed $packageName"
+                        "Successfully $actionVerb $packageName"
                     )
                     WebSocketClient.getInstance(context).send(resultJson)
                 }
@@ -48,12 +55,13 @@ class InstallResultReceiver : BroadcastReceiver() {
                 WebSocketClient.getInstance(context).send(statusReport)
             }
             else -> {
-                Log.e(TAG, "Install failed for $packageName: $status ($message)")
+                val actionVerb = if (isUninstall) "Uninstall" else "Install"
+                Log.e(TAG, "$actionVerb failed for $packageName: $status ($message)")
                 if (commandId.isNotEmpty()) {
                     val resultJson = reporter.buildCommandResult(
                         commandId,
                         false,
-                        "Install failed ($status): $message"
+                        "$actionVerb failed ($status): $message"
                     )
                     WebSocketClient.getInstance(context).send(resultJson)
                 }
@@ -66,6 +74,7 @@ class InstallResultReceiver : BroadcastReceiver() {
         const val EXTRA_PACKAGE_NAME = "com.klyra.mdm.extra.PACKAGE_NAME"
         const val EXTRA_APP_NAME = "com.klyra.mdm.extra.APP_NAME"
         const val EXTRA_COMMAND_ID = "com.klyra.mdm.extra.COMMAND_ID"
+        const val EXTRA_IS_UNINSTALL = "com.klyra.mdm.extra.IS_UNINSTALL"
         private const val TAG = "KlyraInstallReceiver"
     }
 }

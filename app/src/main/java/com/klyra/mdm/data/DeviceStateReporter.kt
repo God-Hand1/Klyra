@@ -4,10 +4,12 @@ import android.content.Context
 import android.os.Build
 import com.google.gson.Gson
 import com.google.gson.JsonObject
+import com.klyra.mdm.admin.DevicePolicyManager
 
 class DeviceStateReporter(private val context: Context) {
 
     private val config = ServerConfig(context)
+    private val dpm = DevicePolicyManager(context)
     private val gson = Gson()
 
     fun buildStatusReport(): String {
@@ -47,6 +49,9 @@ class DeviceStateReporter(private val context: Context) {
 
     private fun isPackageEnabled(packageName: String): Boolean {
         return try {
+            if (dpm.isAppHidden(packageName)) {
+                return false
+            }
             val pm = context.packageManager
             val appInfo = pm.getApplicationInfo(packageName, 0)
             appInfo.enabled

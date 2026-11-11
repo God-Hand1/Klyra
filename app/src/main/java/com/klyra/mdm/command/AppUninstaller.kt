@@ -18,6 +18,7 @@ class AppUninstaller(private val context: Context) {
             val callbackIntent = Intent(context, InstallResultReceiver::class.java).apply {
                 action = InstallResultReceiver.ACTION_INSTALL_RESULT
                 putExtra(InstallResultReceiver.EXTRA_PACKAGE_NAME, packageName)
+                putExtra(InstallResultReceiver.EXTRA_IS_UNINSTALL, true)
                 if (commandId != null) {
                     putExtra(InstallResultReceiver.EXTRA_COMMAND_ID, commandId)
                 }
