@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Klyra MDM</string>
+    <string name="notification_channel_id">klyra_mdm_service</string>
+    <string name="notification_channel_name">Klyra MDM Service</string>
+</resources>

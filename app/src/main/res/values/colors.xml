@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Klyra brand colors -->
+    <color name="klyra_primary">#6366F1</color>
+    <color name="klyra_secondary">#8B5CF6</color>
+    <color name="klyra_background_dark">#0F0F0F</color>
+    <color name="klyra_surface_dark">#1A1A1A</color>
+    <color name="klyra_online">#22C55E</color>
+    <color name="klyra_offline">#EF4444</color>
+</resources>
