@@ -38,6 +38,21 @@ function broadcastToAdmins() {
   }
 }
 
+function broadcastCommandResult({ deviceId, commandId, success, message }) {
+  const payload = JSON.stringify({
+    type: "command_result",
+    deviceId,
+    commandId,
+    success: Boolean(success),
+    message: message || "",
+  });
+  for (const ws of adminClients) {
+    if (ws.readyState === 1 /* OPEN */) {
+      ws.send(payload);
+    }
+  }
+}
+
 // ── Public helpers ─────────────────────────────────────────────────────
 
 /** Notify state changed — persist + broadcast. */
@@ -113,17 +128,19 @@ function applyStatusReport(deviceId, report) {
 }
 
 /**
- * Record the result of a command on a device.
+ * Record the result of a command on a device and broadcast to admins.
  */
 function applyCommandResult(deviceId, { commandId, success, message }) {
   const dev = devices.get(deviceId);
-  if (!dev) return;
-  const cmd = dev.pendingCommands.find((c) => c.commandId === commandId);
-  if (cmd) {
-    cmd.status = success ? "success" : "failed";
-    cmd.message = message;
-    onStateChange();
+  if (dev) {
+    const cmd = dev.pendingCommands.find((c) => c.commandId === commandId);
+    if (cmd) {
+      cmd.status = success ? "success" : "failed";
+      cmd.message = message;
+    }
   }
+  onStateChange();
+  broadcastCommandResult({ deviceId, commandId, success, message });
 }
 
 /**
@@ -169,4 +186,5 @@ module.exports = {
   applyStatusReport,
   applyCommandResult,
   addPendingCommand,
+  broadcastCommandResult,
 };

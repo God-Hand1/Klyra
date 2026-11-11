@@ -1,5 +1,6 @@
 require("dotenv").config({ path: require("path").join(__dirname, "..", ".env") });
 
+const path = require("path");
 const http = require("http");
 const express = require("express");
 const cors = require("cors");
@@ -16,6 +17,10 @@ const PORT = parseInt(process.env.PORT, 10) || 3000;
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+// Serve static files for admin SPA
+app.use(express.static(path.resolve(__dirname, "../../admin")));
+
 app.use(routes);
 
 // Health check
