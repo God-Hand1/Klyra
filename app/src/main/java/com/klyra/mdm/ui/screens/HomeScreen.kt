@@ -147,6 +147,7 @@ fun HomeScreen(
                         catalogApps.addAll(list)
                     }
                 }
+                Unit
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
                     snackbarHostState.showSnackbar("Failed to fetch catalog: ${e.message}")
@@ -227,7 +228,7 @@ fun HomeScreen(
                 containerColor = MaterialTheme.colorScheme.background,
                 contentColor = KlyraPrimary,
                 indicator = { tabPositions ->
-                    TabRowDefaults.SecondaryIndicator(
+                    TabRowDefaults.Indicator(
                         Modifier.tabIndicatorOffset(tabPositions[selectedTab]),
                         color = KlyraPrimary
                     )

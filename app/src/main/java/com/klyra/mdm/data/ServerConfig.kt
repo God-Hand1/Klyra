@@ -9,7 +9,7 @@ class ServerConfig(context: Context) {
     private val prefs: SharedPreferences =
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
-    fun getServerUrl(): String = prefs.getString(KEY_SERVER_URL, "") ?: ""
+    fun getServerUrl(): String = prefs.getString(KEY_SERVER_URL, "ws://10.0.2.2:3000") ?: "ws://10.0.2.2:3000"
 
     fun setServerUrl(url: String) {
         prefs.edit().putString(KEY_SERVER_URL, url.trimEnd('/')).apply()

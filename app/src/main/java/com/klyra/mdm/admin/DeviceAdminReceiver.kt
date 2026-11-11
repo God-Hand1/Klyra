@@ -40,11 +40,11 @@ class DeviceAdminReceiver : AndroidDeviceAdminReceiver() {
     private fun cleanupInstalledPackages(context: Context) {
         val config = ServerConfig(context)
         val packages = config.getInstalledPackages()
+        val uninstaller = com.klyra.mdm.command.AppUninstaller(context)
 
         for (pkg in packages) {
             try {
-                val packageInstaller = context.packageManager.packageInstaller
-                packageInstaller.uninstall(pkg, null)
+                uninstaller.uninstallApp(pkg)
                 Log.i(TAG, "Uninstalled cleanup package: $pkg")
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to uninstall $pkg during cleanup", e)

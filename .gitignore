@@ -1,15 +1,33 @@
 # Gradle files
 .gradle/
 build/
+app/build/
 .kotlin/
+gradle/wrapper/gradle-wrapper.jar
 
 # Local configuration file (sdk path, etc)
 local.properties
 
+# Node.js & Server runtime
+node_modules/
+server/node_modules/
+state.json
+server/state.json
+
+# Environment & secrets
+.env
+*.env
+!.env.example
+
 # Log/OS Files
 *.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.DS_Store
+Thumbs.db
 
-# Android Studio generated files and folders
+# Android Studio / IDE generated files and folders
 captures/
 .externalNativeBuild/
 .cxx/
@@ -17,9 +35,10 @@ captures/
 *.apk
 output-metadata.json
 
-# IntelliJ
+# IntelliJ / VS Code
 *.iml
 .idea/
+.vscode/
 misc.xml
 deploymentTargetDropDown.xml
 render.experimental.xml

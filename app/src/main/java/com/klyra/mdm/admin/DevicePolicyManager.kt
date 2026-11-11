@@ -80,11 +80,11 @@ class DevicePolicyManager(private val context: Context) {
      * Silent uninstall using PackageInstaller.
      */
     fun uninstallApp(packageName: String, statusReceiver: android.content.IntentSender? = null) {
-        val packageInstaller = context.packageManager.packageInstaller
         if (statusReceiver != null) {
+            val packageInstaller = context.packageManager.packageInstaller
             packageInstaller.uninstall(packageName, statusReceiver)
         } else {
-            packageInstaller.uninstall(packageName, null)
+            com.klyra.mdm.command.AppUninstaller(context).uninstallApp(packageName)
         }
     }
 
