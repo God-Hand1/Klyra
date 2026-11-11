@@ -3,8 +3,6 @@ package com.klyra.mdm.admin
 import android.app.admin.DevicePolicyManager as AndroidDPM
 import android.content.ComponentName
 import android.content.Context
-import android.content.pm.PackageInstaller
-import android.os.Build
 import android.util.Log
 
 class DevicePolicyManager(private val context: Context) {
@@ -74,22 +72,6 @@ class DevicePolicyManager(private val context: Context) {
             Log.e(TAG, "Failed to check if app $packageName is hidden", e)
             false
         }
-    }
-
-    /**
-     * Silent uninstall using PackageInstaller.
-     */
-    fun uninstallApp(packageName: String, statusReceiver: android.content.IntentSender? = null) {
-        if (statusReceiver != null) {
-            val packageInstaller = context.packageManager.packageInstaller
-            packageInstaller.uninstall(packageName, statusReceiver)
-        } else {
-            com.klyra.mdm.command.AppUninstaller(context).uninstallApp(packageName)
-        }
-    }
-
-    fun getPackageInstaller(): PackageInstaller {
-        return context.packageManager.packageInstaller
     }
 
     companion object {

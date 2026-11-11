@@ -8,11 +8,18 @@ const router = Router();
 // ── Login ──────────────────────────────────────────────────────────────
 
 router.post("/api/login", (req, res) => {
-  const { username, password } = req.body;
+  const { username, password } = req.body || {};
+
+  const expectedUser = process.env.ADMIN_USER;
+  const expectedPass = process.env.ADMIN_PASS;
 
   if (
-    username === process.env.ADMIN_USER &&
-    password === process.env.ADMIN_PASS
+    typeof expectedUser === "string" &&
+    expectedUser.length > 0 &&
+    typeof expectedPass === "string" &&
+    expectedPass.length > 0 &&
+    username === expectedUser &&
+    password === expectedPass
   ) {
     const token = signToken({ username });
     return res.json({ token });
@@ -27,9 +34,9 @@ router.get("/api/apps", (req, res) => {
   res.json(apps);
 });
 
-// ── Device state ───────────────────────────────────────────────────────
+// ── Device state (protected) ───────────────────────────────────────────
 
-router.get("/api/devices", (req, res) => {
+router.get("/api/devices", authMiddleware, (req, res) => {
   res.json(dm.getAllDevices());
 });
 

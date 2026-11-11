@@ -47,7 +47,7 @@ class WebSocketClient private constructor(private val context: Context) {
         }
 
         val deviceId = config.getDeviceId()
-        val wsUrl = buildWsUrl(serverUrl, deviceId)
+        val wsUrl = "${config.getWsBaseUrl()}/ws/device?deviceId=$deviceId"
 
         Log.i(TAG, "Connecting to WebSocket: $wsUrl")
 
@@ -132,18 +132,6 @@ class WebSocketClient private constructor(private val context: Context) {
                 connect()
             }
         }, delayMillis)
-    }
-
-    private fun buildWsUrl(base: String, deviceId: String): String {
-        var baseTrimmed = base.trimEnd('/')
-        if (baseTrimmed.startsWith("http://")) {
-            baseTrimmed = "ws://" + baseTrimmed.removePrefix("http://")
-        } else if (baseTrimmed.startsWith("https://")) {
-            baseTrimmed = "wss://" + baseTrimmed.removePrefix("https://")
-        } else if (!baseTrimmed.startsWith("ws://") && !baseTrimmed.startsWith("wss://")) {
-            baseTrimmed = "ws://$baseTrimmed"
-        }
-        return "$baseTrimmed/ws/device?deviceId=$deviceId"
     }
 
     companion object {

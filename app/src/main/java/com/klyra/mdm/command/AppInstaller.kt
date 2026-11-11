@@ -35,6 +35,7 @@ class AppInstaller(private val context: Context) {
             val response = httpClient.newCall(request).execute()
 
             if (!response.isSuccessful || response.body == null) {
+                response.close()
                 return@withContext Result.failure(
                     Exception("Failed to download APK: HTTP ${response.code}")
                 )
@@ -51,12 +52,15 @@ class AppInstaller(private val context: Context) {
             }
 
             val sessionId = packageInstaller.createSession(params)
-            session = packageInstaller.openSession(sessionId)
+            val openSession = packageInstaller.openSession(sessionId)
+            session = openSession
 
-            response.body!!.byteStream().use { inputStream: InputStream ->
-                session.openWrite("package", 0, -1).use { outputStream: OutputStream ->
-                    inputStream.copyTo(outputStream)
-                    session.fsync(outputStream)
+            response.use { resp ->
+                resp.body!!.byteStream().use { inputStream: InputStream ->
+                    openSession.openWrite("package", 0, -1).use { outputStream: OutputStream ->
+                        inputStream.copyTo(outputStream)
+                        openSession.fsync(outputStream)
+                    }
                 }
             }
 
@@ -80,7 +84,7 @@ class AppInstaller(private val context: Context) {
                 flags
             )
 
-            session.commit(pendingIntent.intentSender)
+            openSession.commit(pendingIntent.intentSender)
             Log.i(TAG, "Install session committed for $packageName")
             Result.success("Install session created and committed")
         } catch (e: Exception) {

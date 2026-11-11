@@ -299,7 +299,7 @@ const UI = (() => {
     content.innerHTML = `
       <div class="devices-grid">
         ${devices.map(d => `
-          <div class="device-card" onclick="UI.openDeviceModal('${Utils.escapeHtml(d.deviceId)}')">
+          <div class="device-card" onclick="UI.openDeviceModal('${Utils.escapeJs(d.deviceId)}')">
             <div class="device-card-header">
               <span class="device-status-dot ${d.online ? 'online' : 'offline'}"></span>
               <span class="device-name">${Utils.escapeHtml(d.deviceName || d.deviceId)}</span>
@@ -353,7 +353,7 @@ const UI = (() => {
       <div class="detail-section">
         <div class="detail-section-header">
           <h3>${icon('package')} Installed Apps (${apps.length})</h3>
-          <button class="btn btn-sm btn-primary" onclick="App.openInstallCatalog('${Utils.escapeHtml(device.deviceId)}')">
+          <button class="btn btn-sm btn-primary" onclick="App.openInstallCatalog('${Utils.escapeJs(device.deviceId)}')">
             ${icon('download')} Install App
           </button>
         </div>
@@ -367,11 +367,11 @@ const UI = (() => {
                 </div>
                 <div class="app-list-actions">
                   <button class="btn-icon toggle-btn" title="${a.enabled !== false ? 'Disable' : 'Enable'}" 
-                    onclick="App.toggleApp('${Utils.escapeHtml(device.deviceId)}', '${Utils.escapeHtml(a.packageName)}', ${a.enabled !== false})">
+                    onclick="App.toggleApp('${Utils.escapeJs(device.deviceId)}', '${Utils.escapeJs(a.packageName)}', ${a.enabled !== false})">
                     ${a.enabled !== false ? icon('toggleOn') : icon('toggleOff')}
                   </button>
                   <button class="btn-icon danger" title="Uninstall"
-                    onclick="App.uninstallApp('${Utils.escapeHtml(device.deviceId)}', '${Utils.escapeHtml(a.packageName)}', '${Utils.escapeHtml(a.appName || a.packageName)}')">
+                    onclick="App.uninstallApp('${Utils.escapeJs(device.deviceId)}', '${Utils.escapeJs(a.packageName)}', '${Utils.escapeJs(a.appName || a.packageName)}')">
                     ${icon('trash')}
                   </button>
                 </div>
@@ -384,8 +384,8 @@ const UI = (() => {
       <div class="detail-section">
         <h3>${icon('terminal')} Run Command</h3>
         <div class="command-input-row">
-          <input type="text" id="cmd-input" class="input" placeholder="e.g. ls /sdcard" onkeydown="if(event.key==='Enter') App.runCommand('${Utils.escapeHtml(device.deviceId)}')">
-          <button class="btn btn-primary" onclick="App.runCommand('${Utils.escapeHtml(device.deviceId)}')">
+          <input type="text" id="cmd-input" class="input" placeholder="e.g. ls" onkeydown="if(event.key==='Enter') App.runCommand('${Utils.escapeJs(device.deviceId)}')">
+          <button class="btn btn-primary" onclick="App.runCommand('${Utils.escapeJs(device.deviceId)}')">
             ${icon('play')} Run
           </button>
         </div>
@@ -394,7 +394,7 @@ const UI = (() => {
       <div class="detail-section">
         <h3>${icon('script')} Run Script</h3>
         <textarea id="script-input" class="input textarea" placeholder="#!/bin/sh\necho hello" rows="3"></textarea>
-        <button class="btn btn-primary mt-sm" onclick="App.runScript('${Utils.escapeHtml(device.deviceId)}')">
+        <button class="btn btn-primary mt-sm" onclick="App.runScript('${Utils.escapeJs(device.deviceId)}')">
           ${icon('play')} Execute Script
         </button>
       </div>
@@ -437,15 +437,25 @@ const UI = (() => {
   function refreshDeviceModal() {
     const modal = document.getElementById('device-modal');
     if (modal && !modal.classList.contains('hidden') && modal.dataset.deviceId) {
-      // Keep input states if active
+      const activeElement = document.activeElement;
+      const activeId = activeElement ? activeElement.id : null;
       const activeCmdInput = document.getElementById('cmd-input')?.value;
       const activeScriptInput = document.getElementById('script-input')?.value;
+      const outputScroll = document.getElementById('cmd-output')?.scrollTop;
+
       openDeviceModal(modal.dataset.deviceId);
-      if (activeCmdInput && document.getElementById('cmd-input')) {
+
+      if (activeCmdInput !== undefined && document.getElementById('cmd-input')) {
         document.getElementById('cmd-input').value = activeCmdInput;
       }
-      if (activeScriptInput && document.getElementById('script-input')) {
+      if (activeScriptInput !== undefined && document.getElementById('script-input')) {
         document.getElementById('script-input').value = activeScriptInput;
+      }
+      if (outputScroll !== undefined && document.getElementById('cmd-output')) {
+        document.getElementById('cmd-output').scrollTop = outputScroll;
+      }
+      if (activeId && document.getElementById(activeId)) {
+        document.getElementById(activeId).focus();
       }
     }
   }
@@ -500,11 +510,11 @@ const UI = (() => {
             </div>
             <p class="app-desc">${Utils.escapeHtml(Utils.truncate(a.description, 100))}</p>
             ${targetDevice ? `
-              <button class="btn btn-primary btn-sm btn-full" onclick="App.installApp('${Utils.escapeHtml(targetDevice.deviceId)}', '${Utils.escapeHtml(a.packageName)}', '${Utils.escapeHtml(a.appName || a.name)}', '${Utils.escapeHtml(a.apkUrl || '')}')">
+              <button class="btn btn-primary btn-sm btn-full" onclick="App.installApp('${Utils.escapeJs(targetDevice.deviceId)}', '${Utils.escapeJs(a.packageName)}', '${Utils.escapeJs(a.appName || a.name)}', '${Utils.escapeJs(a.apkUrl || '')}')">
                 ${icon('download')} Install on ${Utils.escapeHtml(targetDevice.deviceName || targetDevice.deviceId)}
               </button>
             ` : `
-              <button class="btn btn-primary btn-sm btn-full" onclick="UI.openDeviceSelector('${Utils.escapeHtml(a.packageName)}', '${Utils.escapeHtml(a.appName || a.name)}', '${Utils.escapeHtml(a.apkUrl || '')}')">
+              <button class="btn btn-primary btn-sm btn-full" onclick="UI.openDeviceSelector('${Utils.escapeJs(a.packageName)}', '${Utils.escapeJs(a.appName || a.name)}', '${Utils.escapeJs(a.apkUrl || '')}')">
                 ${icon('download')} Install
               </button>
             `}
@@ -527,7 +537,7 @@ const UI = (() => {
       ${onlineDevices.length === 0 ? '<p class="empty-text">No online devices available</p>' : `
         <div class="device-selector-list">
           ${onlineDevices.map(d => `
-            <button class="device-selector-item" onclick="App.installApp('${Utils.escapeHtml(d.deviceId)}', '${Utils.escapeHtml(packageName)}', '${Utils.escapeHtml(appName)}', '${Utils.escapeHtml(apkUrl)}'); UI.closeDeviceSelector();">
+            <button class="device-selector-item" onclick="App.installApp('${Utils.escapeJs(d.deviceId)}', '${Utils.escapeJs(packageName)}', '${Utils.escapeJs(appName)}', '${Utils.escapeJs(apkUrl)}'); UI.closeDeviceSelector();">
               <span class="device-status-dot online"></span>
               <span>${Utils.escapeHtml(d.deviceName || d.deviceId)}</span>
               ${icon('chevronRight', 'chevron')}

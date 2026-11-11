@@ -1,4 +1,3 @@
-const url = require("url");
 const { WebSocketServer } = require("ws");
 const { v4: uuidv4 } = require("uuid");
 const { verifyToken } = require("./auth");
@@ -12,12 +11,11 @@ function init(server) {
   const wss = new WebSocketServer({ noServer: true });
 
   server.on("upgrade", (req, socket, head) => {
-    const pathname = url.parse(req.url).pathname;
+    const { pathname, searchParams } = new URL(req.url, "http://localhost");
     if (pathname !== "/ws/admin") return;
 
     // Authenticate before upgrading
-    const params = new URLSearchParams(url.parse(req.url).query);
-    const token = params.get("token");
+    const token = searchParams.get("token");
     if (!token || !verifyToken(token)) {
       socket.write("HTTP/1.1 401 Unauthorized\r\n\r\n");
       socket.destroy();

@@ -1,9 +1,5 @@
 package com.klyra.mdm.ui.screens
 
-import android.content.Context
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -54,7 +50,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -125,29 +120,20 @@ fun HomeScreen(
         isLoadingCatalog = true
         withContext(Dispatchers.IO) {
             try {
-                val httpUrl = if (serverUrl.startsWith("ws://")) {
-                    "http://" + serverUrl.removePrefix("ws://")
-                } else if (serverUrl.startsWith("wss://")) {
-                    "https://" + serverUrl.removePrefix("wss://")
-                } else if (!serverUrl.startsWith("http://") && !serverUrl.startsWith("https://")) {
-                    "http://$serverUrl"
-                } else {
-                    serverUrl
-                }
-
+                val httpUrl = config.getHttpBaseUrl()
                 val client = OkHttpClient()
                 val request = Request.Builder().url("$httpUrl/api/apps").build()
-                val response = client.newCall(request).execute()
-                if (response.isSuccessful) {
-                    val body = response.body?.string() ?: ""
-                    val type = object : TypeToken<List<CatalogApp>>() {}.type
-                    val list: List<CatalogApp> = Gson().fromJson(body, type) ?: emptyList()
-                    withContext(Dispatchers.Main) {
-                        catalogApps.clear()
-                        catalogApps.addAll(list)
+                client.newCall(request).execute().use { response ->
+                    if (response.isSuccessful) {
+                        val body = response.body?.string() ?: ""
+                        val type = object : TypeToken<List<CatalogApp>>() {}.type
+                        val list: List<CatalogApp> = Gson().fromJson(body, type) ?: emptyList()
+                        withContext(Dispatchers.Main) {
+                            catalogApps.clear()
+                            catalogApps.addAll(list)
+                        }
                     }
                 }
-                Unit
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
                     snackbarHostState.showSnackbar("Failed to fetch catalog: ${e.message}")

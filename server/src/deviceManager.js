@@ -127,6 +127,8 @@ function applyStatusReport(deviceId, report) {
   onStateChange();
 }
 
+const MAX_COMMAND_HISTORY = 100;
+
 /**
  * Record the result of a command on a device and broadcast to admins.
  */
@@ -136,7 +138,18 @@ function applyCommandResult(deviceId, { commandId, success, message }) {
     const cmd = dev.pendingCommands.find((c) => c.commandId === commandId);
     if (cmd) {
       cmd.status = success ? "success" : "failed";
-      cmd.message = message;
+      cmd.message = message || "";
+    } else if (commandId) {
+      dev.pendingCommands.push({
+        commandId,
+        type: "device_action",
+        status: success ? "success" : "failed",
+        message: message || "",
+        sentAt: new Date().toISOString(),
+      });
+      if (dev.pendingCommands.length > MAX_COMMAND_HISTORY) {
+        dev.pendingCommands = dev.pendingCommands.slice(-MAX_COMMAND_HISTORY);
+      }
     }
   }
   onStateChange();
@@ -154,7 +167,19 @@ function addPendingCommand(deviceId, command) {
     status: "pending",
     sentAt: new Date().toISOString(),
   });
+  if (dev.pendingCommands.length > MAX_COMMAND_HISTORY) {
+    dev.pendingCommands = dev.pendingCommands.slice(-MAX_COMMAND_HISTORY);
+  }
   onStateChange();
+}
+
+/**
+ * Get all queued commands awaiting delivery for a device.
+ */
+function getQueuedCommands(deviceId) {
+  const dev = devices.get(deviceId);
+  if (!dev) return [];
+  return dev.pendingCommands.filter((c) => c.status === "pending");
 }
 
 // ── Load hint from disk on startup ─────────────────────────────────────
@@ -186,5 +211,6 @@ module.exports = {
   applyStatusReport,
   applyCommandResult,
   addPendingCommand,
+  getQueuedCommands,
   broadcastCommandResult,
 };

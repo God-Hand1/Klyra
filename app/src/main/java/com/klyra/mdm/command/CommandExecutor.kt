@@ -6,7 +6,6 @@ import com.google.gson.Gson
 import com.google.gson.JsonObject
 import com.klyra.mdm.admin.DevicePolicyManager
 import com.klyra.mdm.data.DeviceStateReporter
-import com.klyra.mdm.data.ServerConfig
 import com.klyra.mdm.service.WebSocketClient
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -19,9 +18,8 @@ class CommandExecutor(private val context: Context) {
     private val dpm = DevicePolicyManager(context)
     private val appInstaller = AppInstaller(context)
     private val appUninstaller = AppUninstaller(context)
-    private val shellExecutor = ShellExecutor()
+    private val shellExecutor = ShellExecutor(context.filesDir)
     private val reporter = DeviceStateReporter(context)
-    private val config = ServerConfig(context)
 
     fun handleMessage(jsonString: String) {
         scope.launch {

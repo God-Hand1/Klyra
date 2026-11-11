@@ -93,6 +93,9 @@ dependencies {
     // Coil for Compose (image loading)
     implementation("io.coil-kt:coil-compose:2.5.0")
 
+    // Testing
+    testImplementation("junit:junit:4.13.2")
+
     // Debug
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")

@@ -16,9 +16,23 @@ const Utils = (() => {
   }
 
   function escapeHtml(str) {
-    const div = document.createElement('div');
-    div.textContent = str;
-    return div.innerHTML;
+    if (str == null) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  function escapeJs(str) {
+    if (str == null) return '';
+    return String(str)
+      .replace(/\\/g, '\\\\')
+      .replace(/'/g, "\\'")
+      .replace(/"/g, '\\"')
+      .replace(/\n/g, '\\n')
+      .replace(/\r/g, '\\r');
   }
 
   function truncate(str, len = 80) {
@@ -51,5 +65,5 @@ const Utils = (() => {
     return categoryColors[cat] || '#3b82f6';
   }
 
-  return { timeAgo, escapeHtml, truncate, generateId, debounce, categoryColor };
+  return { timeAgo, escapeHtml, escapeJs, truncate, generateId, debounce, categoryColor };
 })();

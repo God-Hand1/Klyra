@@ -6,7 +6,6 @@ import android.content.Intent
 import android.content.pm.PackageInstaller
 import android.os.Build
 import android.util.Log
-import com.klyra.mdm.data.ServerConfig
 
 class AppUninstaller(private val context: Context) {
 
@@ -38,12 +37,6 @@ class AppUninstaller(private val context: Context) {
             )
 
             packageInstaller.uninstall(packageName, pendingIntent.intentSender)
-
-            // Remove from local tracked packages
-            val config = ServerConfig(context)
-            config.removeInstalledPackage(packageName)
-            config.removeInstalledAppName(packageName)
-
             true
         } catch (e: Exception) {
             Log.e(TAG, "Failed to uninstall $packageName", e)

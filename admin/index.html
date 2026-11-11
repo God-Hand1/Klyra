@@ -15,7 +15,7 @@
   <div id="toast-container"></div>
 
   <!-- Device Detail Modal -->
-  <div id="device-modal" class="modal-overlay hidden">
+  <div id="device-modal" class="modal-overlay hidden" onclick="if(event.target === this) UI.closeDeviceModal()">
     <div class="modal-panel">
       <div class="modal-header">
         <div class="modal-title-area">
@@ -29,7 +29,7 @@
   </div>
 
   <!-- Device Selector Modal (for app install) -->
-  <div id="device-selector-modal" class="modal-overlay hidden">
+  <div id="device-selector-modal" class="modal-overlay hidden" onclick="if(event.target === this) UI.closeDeviceSelector()">
     <div class="modal-panel modal-small">
       <div class="modal-header">
         <h2>Select Device</h2>

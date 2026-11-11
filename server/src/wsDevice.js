@@ -1,4 +1,3 @@
-const url = require("url");
 const { WebSocketServer } = require("ws");
 const dm = require("./deviceManager");
 
@@ -12,7 +11,7 @@ function init(server) {
   const wss = new WebSocketServer({ noServer: true });
 
   server.on("upgrade", (req, socket, head) => {
-    const pathname = url.parse(req.url).pathname;
+    const { pathname } = new URL(req.url, "http://localhost");
     if (pathname !== "/ws/device") return; // let other upgraders handle it
 
     wss.handleUpgrade(req, socket, head, (ws) => {
@@ -21,8 +20,8 @@ function init(server) {
   });
 
   wss.on("connection", (ws, req) => {
-    const params = new URLSearchParams(url.parse(req.url).query);
-    const deviceId = params.get("deviceId");
+    const { searchParams } = new URL(req.url, "http://localhost");
+    const deviceId = searchParams.get("deviceId");
 
     if (!deviceId) {
       ws.close(4000, "Missing deviceId");
@@ -44,6 +43,7 @@ function init(server) {
       switch (msg.type) {
         case "status_report":
           dm.applyStatusReport(deviceId, msg);
+          flushPendingCommands(deviceId);
           break;
 
         case "command_result":
@@ -78,6 +78,16 @@ function sendToDevice(deviceId, command) {
   if (!ws || ws.readyState !== 1) return false;
   ws.send(JSON.stringify(command));
   return true;
+}
+
+/**
+ * Deliver queued commands that accumulated while the device was offline.
+ */
+function flushPendingCommands(deviceId) {
+  const queued = dm.getQueuedCommands(deviceId);
+  for (const cmd of queued) {
+    sendToDevice(deviceId, cmd);
+  }
 }
 
 module.exports = { init, sendToDevice, deviceSockets };

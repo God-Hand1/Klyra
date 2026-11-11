@@ -34,6 +34,15 @@ const server = http.createServer(app);
 wsDevice.init(server);
 wsAdmin.init(server);
 
+// Reject unknown upgrade paths to avoid socket resource leaks
+server.on("upgrade", (req, socket) => {
+  const { pathname } = new URL(req.url, "http://localhost");
+  if (pathname !== "/ws/device" && pathname !== "/ws/admin") {
+    socket.write("HTTP/1.1 404 Not Found\r\n\r\n");
+    socket.destroy();
+  }
+});
+
 // ── Load persisted state hint, then start ──────────────────────────────
 
 dm.loadState();

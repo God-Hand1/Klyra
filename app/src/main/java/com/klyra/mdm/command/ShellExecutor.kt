@@ -3,14 +3,19 @@ package com.klyra.mdm.command
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.BufferedReader
+import java.io.File
 import java.io.InputStreamReader
 import java.util.concurrent.TimeUnit
 
-class ShellExecutor {
+class ShellExecutor(private val workingDir: File? = null) {
 
     suspend fun execute(command: String): ShellResult = withContext(Dispatchers.IO) {
         try {
-            val process = Runtime.getRuntime().exec(arrayOf("sh", "-c", command))
+            val processBuilder = ProcessBuilder("sh", "-c", command)
+            if (workingDir != null && workingDir.isDirectory) {
+                processBuilder.directory(workingDir)
+            }
+            val process = processBuilder.start()
 
             val stdoutBuilder = StringBuilder()
             val stderrBuilder = StringBuilder()
@@ -38,7 +43,7 @@ class ShellExecutor {
 
             val finished = process.waitFor(30, TimeUnit.SECONDS)
             if (!finished) {
-                process.destroy()
+                process.destroyForcibly()
                 return@withContext ShellResult(
                     exitCode = -1,
                     output = stdoutBuilder.toString(),
