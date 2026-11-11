@@ -1,6 +1,16 @@
 const jwt = require("jsonwebtoken");
 
 const JWT_SECRET = process.env.JWT_SECRET || "fallback-secret";
+if (
+  process.env.NODE_ENV === "production" &&
+  (!process.env.JWT_SECRET ||
+    process.env.JWT_SECRET === "fallback-secret" ||
+    process.env.JWT_SECRET === "change-me-to-a-random-secret")
+) {
+  throw new Error(
+    "[SECURITY CRITICAL] Set a secure, random JWT_SECRET in environment before running in production!"
+  );
+}
 const TOKEN_EXPIRY = "24h";
 
 /**

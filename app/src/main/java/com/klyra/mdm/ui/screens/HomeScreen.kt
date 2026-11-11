@@ -214,7 +214,7 @@ fun HomeScreen(
                 containerColor = MaterialTheme.colorScheme.background,
                 contentColor = KlyraPrimary,
                 indicator = { tabPositions ->
-                    TabRowDefaults.Indicator(
+                    TabRowDefaults.SecondaryIndicator(
                         Modifier.tabIndicatorOffset(tabPositions[selectedTab]),
                         color = KlyraPrimary
                     )

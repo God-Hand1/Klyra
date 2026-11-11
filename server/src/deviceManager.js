@@ -24,6 +24,19 @@ function scheduleSave() {
   }, 1000);
 }
 
+function flushState() {
+  if (saveTimer) {
+    clearTimeout(saveTimer);
+    saveTimer = null;
+  }
+  try {
+    const obj = Object.fromEntries(devices);
+    fs.writeFileSync(STATE_FILE, JSON.stringify(obj, null, 2));
+  } catch (err) {
+    console.error("[state] synchronous flush error:", err.message);
+  }
+}
+
 // ── Broadcast to admin clients ─────────────────────────────────────────
 
 function broadcastToAdmins() {
@@ -203,6 +216,7 @@ function loadState() {
 module.exports = {
   adminClients,
   loadState,
+  flushState,
   getDevice,
   getAllDevices,
   setDevice,

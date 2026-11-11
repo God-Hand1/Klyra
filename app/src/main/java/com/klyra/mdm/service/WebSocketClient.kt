@@ -38,6 +38,7 @@ class WebSocketClient private constructor(private val context: Context) {
 
     fun connect() {
         isIntentionalClose = false
+        handler.removeCallbacksAndMessages(null)
         val config = ServerConfig(context)
         val serverUrl = config.getServerUrl()
 

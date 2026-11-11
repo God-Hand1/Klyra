@@ -108,6 +108,26 @@ describe("REST API Routes", () => {
     assert.ok(res.body.token);
   });
 
+  it("POST /api/login should rate-limit after repeated failed attempts", async () => {
+    // Send 5 failed attempts
+    for (let i = 0; i < 5; i++) {
+      const res = await request(server, "/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: { username: "adminuser", password: "wrong" },
+      });
+      assert.strictEqual(res.statusCode, 401);
+    }
+    // 6th attempt should be rate limited (429)
+    const limited = await request(server, "/api/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: { username: "adminuser", password: "wrong" },
+    });
+    assert.strictEqual(limited.statusCode, 429);
+    assert.match(limited.body.error, /Too many failed login attempts/i);
+  });
+
   it("GET /api/apps should return catalog without requiring admin token", async () => {
     const res = await request(server, "/api/apps");
     assert.strictEqual(res.statusCode, 200);

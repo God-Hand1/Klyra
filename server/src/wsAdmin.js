@@ -1,5 +1,5 @@
 const { WebSocketServer } = require("ws");
-const { v4: uuidv4 } = require("uuid");
+const { randomUUID } = require("crypto");
 const { verifyToken } = require("./auth");
 const dm = require("./deviceManager");
 const wsDevice = require("./wsDevice");
@@ -56,7 +56,7 @@ function init(server) {
           return;
         }
 
-        const commandId = uuidv4();
+        const commandId = randomUUID();
         const fullCommand = { commandId, ...command };
 
         // Track it on the device
